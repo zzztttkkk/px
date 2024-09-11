@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use crate::value::ValueItem;
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct Command {
     #[serde(rename = "name")]
     pub name: Option<String>,

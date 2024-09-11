@@ -3,7 +3,7 @@ use serde::{
     Deserialize, Serialize,
 };
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub enum ValueItem {
     Int(i64),
     Uint(u64),

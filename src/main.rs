@@ -1,11 +1,22 @@
 use core::str;
-use std::{clone, collections::HashMap, env};
+use std::{
+    collections::HashMap,
+    env,
+    io::{Read, Write},
+};
 
 use config::{Command, Config};
 use value::ValueItem;
 
 mod config;
 mod value;
+
+fn trytostring(v: &Vec<u8>) -> Option<String> {
+    match String::from_utf8(v.to_vec()) {
+        Ok(t) => Some(t),
+        Err(_) => None,
+    }
+}
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -36,9 +47,7 @@ fn main() {
         return;
     }
     let requirename: String = args[1].to_uppercase();
-    let cmd = cmds
-        .get(&requirename)
-        .expect(format!("command `{}` not found", requirename).as_str());
+    let cmd = cmds.get(&requirename).expect("");
 
     let mut values: HashMap<String, ValueItem> = HashMap::new();
     cfg.values.as_ref().map(|vs| {

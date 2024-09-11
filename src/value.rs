@@ -102,7 +102,7 @@ impl<'de> Visitor<'de> for ValueItemVisitor {
     }
 
     fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-        todo!()
+        formatter.write_str(format!("expect `string`, `number` or `bool`").as_str())
     }
 }
 

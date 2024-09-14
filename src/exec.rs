@@ -56,7 +56,11 @@ pub fn exec(
         .wait()
         .expect(format!("wait process failed").as_str());
     match es.code() {
-        Some(code) => std::process::exit(code),
+        Some(code) => {
+            if code != 0 {
+                std::process::exit(code);
+            }
+        }
         None => {}
     }
 }

@@ -5,22 +5,24 @@ use crate::value::ValueItem;
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct Command {
-    #[serde(rename = "name")]
+    #[serde()]
     pub name: Option<String>,
-    #[serde(rename = "dir")]
+    #[serde()]
     pub dir: Option<String>,
-    #[serde(rename = "cmd")]
+    #[serde()]
     pub cmd: Option<String>,
-    #[serde(rename = "args")]
+    #[serde()]
     pub args: Option<Vec<ValueItem>>,
-    #[serde(rename = "values")]
+    #[serde(alias = "vals")]
     pub values: Option<HashMap<String, ValueItem>>,
+    #[serde()]
+    pub matrix: Option<Vec<Vec<ValueItem>>>,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Config {
-    #[serde(rename = "values")]
+    #[serde(alias = "vals")]
     pub values: Option<HashMap<String, ValueItem>>,
-    #[serde(rename = "cmds")]
+    #[serde()]
     pub cmds: Option<HashMap<String, Command>>,
 }

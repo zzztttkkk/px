@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use serde::{
     de::{self, Visitor},
     Deserialize, Serialize,
@@ -10,6 +12,18 @@ pub enum ValueItem {
     Double(f64),
     Bool(bool),
     String(String),
+}
+
+impl ValueItem {
+    pub fn to_string(&self) -> String {
+        match self {
+            ValueItem::Int(v) => format!("{}", *v).to_string(),
+            ValueItem::Uint(v) => format!("{}", *v).to_string(),
+            ValueItem::Double(v) => format!("{}", *v).to_string(),
+            ValueItem::Bool(v) => format!("{}", *v).to_string(),
+            ValueItem::String(v) => v.clone(),
+        }
+    }
 }
 
 struct ValueItemVisitor;
@@ -112,5 +126,94 @@ impl<'de> Deserialize<'de> for ValueItem {
         D: de::Deserializer<'de>,
     {
         deserializer.deserialize_any(ValueItemVisitor {})
+    }
+}
+
+pub static VALUE_REGEXP: std::sync::LazyLock<&'static regex::Regex> =
+    std::sync::LazyLock::new(|| {
+        return Box::leak(Box::new(
+            regex::Regex::new(r"\$\{\s*[\w#]+(\.\d)?\s*\}").unwrap(),
+        ));
+    });
+
+pub struct ValueReplacer<'a> {
+    pub values: &'a HashMap<String, ValueItem>,
+    pub matrix: Option<&'a Vec<ValueItem>>,
+    pub errors: Option<String>,
+}
+
+fn matrix_idx(txt: &str) -> Option<usize> {
+    match txt.find('.') {
+        Some(idx) => {
+            let name = &(txt[..idx]);
+            if name != "#" && name != "matrix" {
+                return None;
+            }
+            let seq = &(txt[(idx + 1)..]);
+            match seq.parse::<usize>() {
+                Ok(num) => {
+                    return Some(num);
+                }
+                Err(_) => {
+                    return None;
+                }
+            }
+        }
+        None => None,
+    }
+}
+
+impl<'a> regex::Replacer for &mut ValueReplacer<'a> {
+    fn replace_append(&mut self, caps: &regex::Captures<'_>, dst: &mut String) {
+        if self.errors.is_some() {
+            return;
+        }
+        let name = &caps[0];
+        let name = &(name[2..name.len() - 1]).trim();
+
+        match matrix_idx(name) {
+            Some(idx) => match self.matrix.as_ref() {
+                Some(ms) => {
+                    if idx >= ms.len() {
+                        self.errors = Some(format!(
+                            "out of matrix range, can not get value for `{}`",
+                            name
+                        ));
+                        return;
+                    }
+                    dst.push_str(ms[idx].to_string().as_str());
+                    return;
+                }
+                None => {
+                    self.errors = Some(format!("empty matrix, can not get value for `{}`", name));
+                    return;
+                }
+            },
+            None => match self.values.get(name.trim()) {
+                Some(ele) => {
+                    dst.push_str(ele.to_string().as_str());
+                    return;
+                }
+                None => {
+                    self.errors = Some(format!("undefined, can not get value for `{}`", name));
+                    return;
+                }
+            },
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::value::VALUE_REGEXP;
+
+    #[test]
+    fn test_regexp() {
+        println!("{}", (*VALUE_REGEXP).is_match("${121.1}"));
+
+        let matchs: Vec<_> = (*VALUE_REGEXP).find_iter("${a}-${b}-${c.1}").collect();
+        for me in matchs {
+            println!(">>> {}", me.as_str())
+        }
     }
 }

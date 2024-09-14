@@ -1,7 +1,6 @@
 on:
   release:
     types: [created]
-  push:
 
 jobs:
   release:
@@ -44,6 +43,7 @@ jobs:
       - name: Compile and release
         uses: rust-build/rust-build.action@master
         with:
+          TOOLCHAIN_VERSION: 1.81.0
           RUSTTARGET: ${{ matrix.target }}
           UPLOAD_MODE: none
       - name: Checkout output

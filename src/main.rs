@@ -10,10 +10,6 @@ mod value;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    if args.is_empty() || args.len() < 2 {
-        println!("empty args");
-        return;
-    }
 
     let bytes = std::fs::read("./px.toml").unwrap();
     let content = str::from_utf8(&bytes).unwrap();
@@ -26,8 +22,8 @@ fn main() {
     cfg.cmds.as_ref().map(|vs| {
         for (key, cmd) in vs {
             let name: String = match &cmd.name {
-                Some(tmp) => tmp.to_uppercase(),
-                None => key.to_uppercase(),
+                Some(tmp) => tmp.to_lowercase(),
+                None => key.to_lowercase(),
             };
             cmds.insert(name, cmd.clone());
         }
@@ -36,10 +32,51 @@ fn main() {
         println!("empty commands");
         return;
     }
-    let requirename: String = args[1].to_uppercase();
+
+    let mut requirename: String = String::new();
+    if args.len() == 1 {
+        let mut names: Vec<_> = cmds.keys().collect();
+        names.sort();
+        let cs: Vec<_> = names
+            .iter()
+            .enumerate()
+            .map(|(idx, key)| format!("{}: {}", idx, key))
+            .collect();
+        println!("please choose one command {:?}", cs);
+        let mut line = String::new();
+        _ = std::io::stdin().read_line(&mut line);
+        let line = line.trim().to_lowercase();
+        if line.is_empty() {
+            return;
+        }
+        match line.parse::<usize>() {
+            Ok(idx) => {
+                if idx >= names.len() {
+                    panic!("bad index");
+                }
+                requirename = names[idx].clone();
+            }
+            Err(_) => {
+                let mut found = false;
+                for name in names.iter() {
+                    if name.to_lowercase() == line {
+                        requirename = line.clone();
+                        found = true;
+                        break;
+                    }
+                }
+                if !found {
+                    panic!("unknown command `{}`", &line)
+                }
+            }
+        }
+    } else {
+        requirename = args[1].to_lowercase();
+    }
+
     let cmd = cmds
         .get_mut(&requirename)
-        .expect(format!("command `{}` not found", &args[1]).as_str());
+        .expect(format!("command `{}` not found", requirename).as_str());
 
     let mut values: HashMap<String, ValueItem> = HashMap::new();
     cfg.values.as_ref().map(|vs| {

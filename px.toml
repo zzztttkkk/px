@@ -1,0 +1,11 @@
+[values]
+x = 12
+y = "xx"
+z = false
+
+[cmds.echo]
+matrix = [["a", "b", "c"], [1, 3]]
+args = ["${x}", "${#.0}-${#.1}.${z}"]
+
+[cmds.ls]
+dir = "./src"

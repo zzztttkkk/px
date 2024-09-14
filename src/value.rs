@@ -209,9 +209,9 @@ mod tests {
 
     #[test]
     fn test_regexp() {
-        println!("{}", (*VALUE_REGEXP).is_match("${121.1}"));
+        println!("{}", VALUE_REGEXP.is_match("${121.1}"));
 
-        let matchs: Vec<_> = (*VALUE_REGEXP).find_iter("${a}-${b}-${c.1}").collect();
+        let matchs: Vec<_> = VALUE_REGEXP.find_iter("${a}-${b}-${c.1}").collect();
         for me in matchs {
             println!(">>> {}", me.as_str())
         }

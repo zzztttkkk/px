@@ -20,11 +20,7 @@ fn main() {
     let mut cmds: HashMap<String, config::Command> = HashMap::new();
     cfg.cmds.as_ref().map(|vs| {
         for (key, cmd) in vs {
-            let name: String = match &cmd.name {
-                Some(tmp) => tmp.to_lowercase(),
-                None => key.to_lowercase(),
-            };
-            cmds.insert(name, cmd.clone());
+            cmds.insert(key.to_lowercase(), cmd.clone());
         }
     });
 

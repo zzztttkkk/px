@@ -11,12 +11,12 @@ pub fn exec(
     values: &HashMap<String, ValueItem>,
     matrix: Option<&Vec<ValueItem>>,
 ) {
-    let program = match cmdcfg.cmd.as_ref() {
-        Some(t) => {
-            if t.is_empty() {
+    let program = match cmdcfg.program.as_ref() {
+        Some(tmp) => {
+            if tmp.is_empty() {
                 program
             } else {
-                t.clone()
+                tmp.clone()
             }
         }
         None => program,
@@ -37,9 +37,7 @@ pub fn exec(
                         matrix,
                         errors: None,
                     };
-                    let txt = (*VALUE_REGEXP)
-                        .replace_all(&txt, &mut replacer)
-                        .into_owned();
+                    let txt = VALUE_REGEXP.replace_all(&txt, &mut replacer).into_owned();
                     if replacer.errors.is_some() {
                         panic!("{}", replacer.errors.unwrap());
                     }
@@ -52,8 +50,13 @@ pub fn exec(
         }
     });
 
-    cmd.spawn()
+    let es = cmd
+        .spawn()
         .expect(format!("failed to spawn process: `{}`", &program).as_str())
         .wait()
         .expect(format!("wait process failed").as_str());
+    match es.code() {
+        Some(code) => std::process::exit(code),
+        None => {}
+    }
 }

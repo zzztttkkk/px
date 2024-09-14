@@ -6,11 +6,9 @@ use crate::value::ValueItem;
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct Command {
     #[serde()]
-    pub name: Option<String>,
-    #[serde()]
     pub dir: Option<String>,
-    #[serde()]
-    pub cmd: Option<String>,
+    #[serde(alias = "cmd", alias = "prog")]
+    pub program: Option<String>,
     #[serde()]
     pub args: Option<Vec<ValueItem>>,
     #[serde(alias = "vals")]

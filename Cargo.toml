@@ -7,3 +7,9 @@ edition = "2021"
 regex = "1.10.6"
 serde = { version = "1.0.210", features = ["derive"] }
 toml = "0.8.19"
+
+[profile.release]
+strip = true
+opt-level = "z"
+lto = true
+codegen-units = 1

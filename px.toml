@@ -9,3 +9,8 @@ args = ["${x}", "${#.0}-${#.1}.${z}"]
 
 [cmds.ls]
 dir = "./src"
+
+[cmds.install]
+values = { dest = "~/go/bin" }
+prog = "pwsh"
+args = ["-c", "cargo build -r && cp ./target/release/px.exe ${dest}/px.exe"]

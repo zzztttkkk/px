@@ -11,12 +11,11 @@ mod value;
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    let bytes = std::fs::read("./px.toml").unwrap();
-    let content = str::from_utf8(&bytes).unwrap();
-    let cfg = toml::from_str::<Config>(content).unwrap();
+    let bytes = std::fs::read("./px.toml").expect("file `./px.toml` is not found");
+    let content = str::from_utf8(&bytes).expect("bad encoding, `px.toml`");
+    let cfg = toml::from_str::<Config>(content).expect("bad toml format, `px.toml`");
     if cfg.cmds.is_none() {
-        println!("empty commands");
-        return;
+        panic!("empty commands");
     }
     let mut cmds: HashMap<String, config::Command> = HashMap::new();
     cfg.cmds.as_ref().map(|vs| {
@@ -28,10 +27,6 @@ fn main() {
             cmds.insert(name, cmd.clone());
         }
     });
-    if cmds.is_empty() {
-        println!("empty commands");
-        return;
-    }
 
     let mut requirename: String = String::new();
     if args.len() == 1 {
@@ -42,7 +37,7 @@ fn main() {
             .enumerate()
             .map(|(idx, key)| format!("{}: {}", idx, key))
             .collect();
-        println!("please choose one command {:?}", cs);
+        println!("please choose one command: {:?}", cs);
         let mut line = String::new();
         _ = std::io::stdin().read_line(&mut line);
         let line = line.trim().to_lowercase();
@@ -66,7 +61,7 @@ fn main() {
                     }
                 }
                 if !found {
-                    panic!("unknown command `{}`", &line)
+                    panic!("bad command: `{}`", &line)
                 }
             }
         }

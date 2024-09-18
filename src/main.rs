@@ -9,11 +9,22 @@ mod exec;
 mod value;
 
 fn main() {
+    std::panic::set_hook(Box::new(|info| {
+        match info.payload().downcast_ref::<String>() {
+            Some(msg) => {
+                println!("Paniced: {}", msg);
+            }
+            None => {
+                println!("Paniced @ {:?}", info.location());
+            }
+        }
+    }));
+
     let args: Vec<String> = env::args().collect();
 
-    let bytes = std::fs::read("./px.toml").expect("file `./px.toml` is not found");
-    let content = str::from_utf8(&bytes).expect("bad encoding, `px.toml`");
-    let cfg = toml::from_str::<Config>(content).expect("bad toml format, `px.toml`");
+    let bytes = std::fs::read("./px.toml").expect("read `./px.toml` failed");
+    let content = str::from_utf8(&bytes).expect("read `px.toml` failed");
+    let cfg = toml::from_str::<Config>(content).expect("parse `px.toml` failed");
     if cfg.cmds.is_none() {
         panic!("empty commands");
     }

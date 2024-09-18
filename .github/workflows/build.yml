@@ -24,8 +24,7 @@ jobs:
         with:
           name: Binary
           path: |
-            ${{ steps.CompileLinux.outputs.BUILT_ARCHIVE }}
-            ${{ steps.CompileLinux.outputs.BUILT_CHECKSUM }}
+            target/x86_64-unknown-linux-musl/release/px
 
       - name: CompileWindows
         uses: rust-build/rust-build.action@master
@@ -40,5 +39,4 @@ jobs:
         with:
           name: Binary
           path: |
-            ${{ steps.CompileWindows.outputs.BUILT_ARCHIVE }}
-            ${{ steps.CompileWindows.outputs.BUILT_CHECKSUM }}
+            target/x86_64-pc-windows-gnu/release/px.exe

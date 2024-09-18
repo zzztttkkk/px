@@ -3,40 +3,37 @@ on:
     types: [created]
 
 jobs:
-  release_without_not_required:
+  release:
     name: release ${{ matrix.target }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-pc-windows-gnu
+            archive: zip
+          - target: x86_64-unknown-linux-musl
+            archive: tar.gz
+          # - target: x86_64-apple-darwin
+            # archive: zip
+    
     steps:
       - uses: actions/checkout@master
       
-      - name: CompileLinux
+      - name: compile
+        id: compile
         uses: rust-build/rust-build.action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           TOOLCHAIN_VERSION: 1.81.0
           RUSTTARGET: x86_64-unknown-linux-musl
-          UPLOAD_MODE: none
-      - name: Upload Linux
-        uses: actions/upload-artifact@v3
-        with:
-          name: Binary
-          path: |
-            target/x86_64-unknown-linux-musl/release/px
+          ARCHIVE_TYPES: ${{ matrix.archive }}
 
-      - name: CompileWindows
-        uses: rust-build/rust-build.action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          TOOLCHAIN_VERSION: 1.81.0
-          RUSTTARGET: x86_64-pc-windows-gnu
-          UPLOAD_MODE: none
-      - name: Upload Windows
-        uses: actions/upload-artifact@v3
+      - name: Upload
+        uses: actions/upload-artifact@v4
         with:
           name: Binary
           path: |
-            target/x86_64-pc-windows-gnu/release/px.exe
+            ${{ steps.compile.outputs.BUILT_ARCHIVE }}
+            ${{ steps.compile.outputs.BUILT_CHECKSUM }}

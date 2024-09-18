@@ -7,21 +7,38 @@ jobs:
     name: release ${{ matrix.target }}
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
-      matrix:
-        target:
-          [
-            x86_64-unknown-linux-musl,
-            x86_64-pc-windows-gnu,
-            # x86_64-apple-darwin,
-          ]
+      fail-fast: false
     steps:
       - uses: actions/checkout@master
-      - name: Compile and release
+      
+      - name: CompileLinux
         uses: rust-build/rust-build.action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           TOOLCHAIN_VERSION: 1.81.0
-          RUSTTARGET: ${{ matrix.target }}
+          RUSTTARGET: x86_64-unknown-linux-musl
           UPLOAD_MODE: none
-      - name: Checkout output
-        run: ls -laR
+      - name: Upload Linux
+        uses: actions/upload-artifact@v3
+        with:
+          name: Binary
+          path: |
+            ${{ steps.CompileLinux.outputs.BUILT_ARCHIVE }}
+            ${{ steps.CompileLinux.outputs.BUILT_CHECKSUM }}
+
+      - name: CompileWindows
+        uses: rust-build/rust-build.action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          TOOLCHAIN_VERSION: 1.81.0
+          RUSTTARGET: x86_64-pc-windows-gnu
+          UPLOAD_MODE: none
+      - name: Upload Windows
+        uses: actions/upload-artifact@v3
+        with:
+          name: Binary
+          path: |
+            ${{ steps.CompileWindows.outputs.BUILT_ARCHIVE }}
+            ${{ steps.CompileWindows.outputs.BUILT_CHECKSUM }}

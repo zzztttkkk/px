@@ -14,3 +14,6 @@ dir = "./src"
 values = { dest = "~/go/bin" }
 prog = "pwsh"
 args = ["-c", "cargo build -r && cp ./target/release/px.exe ${dest}/px.exe"]
+
+[cmds.py]
+prog = "python"

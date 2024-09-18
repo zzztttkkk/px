@@ -20,14 +20,14 @@ jobs:
     steps:
       - uses: actions/checkout@master
       
-      - name: compile
+      - name: Compile
         id: compile
         uses: rust-build/rust-build.action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           TOOLCHAIN_VERSION: 1.81.0
-          RUSTTARGET: x86_64-unknown-linux-musl
+          RUSTTARGET: ${{ matrix.target }}
           ARCHIVE_TYPES: ${{ matrix.archive }}
 
       - name: Upload

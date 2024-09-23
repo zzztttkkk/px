@@ -1,4 +1,7 @@
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 
 use crate::{
     config::Command,
@@ -10,6 +13,7 @@ pub fn exec(
     cmdcfg: &Command,
     values: &HashMap<String, ValueItem>,
     matrix: Option<&Vec<ValueItem>>,
+    ccpidarc: Arc<Mutex<u32>>,
 ) {
     let program = match cmdcfg.program.as_ref() {
         Some(tmp) => {
@@ -50,11 +54,16 @@ pub fn exec(
         }
     });
 
-    let es = cmd
+    let mut child = cmd
         .spawn()
-        .expect(format!("failed to spawn process: `{}`", &program).as_str())
-        .wait()
-        .expect(format!("wait process failed").as_str());
+        .expect(format!("failed to spawn process: `{}`", &program).as_str());
+
+    let mut mg = ccpidarc.lock().unwrap();
+    *mg = child.id();
+    std::mem::drop(mg);
+
+    let es = child.wait().expect(format!("wait process failed").as_str());
+    _ = kill_tree::blocking::kill_tree(child.id());
     match es.code() {
         Some(code) => {
             if code != 0 {

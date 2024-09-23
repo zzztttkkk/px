@@ -17,3 +17,11 @@ args = ["-c", "cargo build -r && cp ./target/release/px.exe ${dest}/px.exe"]
 
 [cmds.py]
 prog = "python"
+
+[cmds.loopecho]
+prog = "pwsh"
+args = ["-c", """for ($i = 1; $i -le 100; $i++) { 
+    sleep 1
+    $cpid = [System.Diagnostics.Process]::GetCurrentProcess().ID
+    echo "Pid: $cpid" 
+}"""]

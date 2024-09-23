@@ -1,9 +1,11 @@
 [package]
 name = "px"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 
 [dependencies]
+ctrlc = "3.4.5"
+kill_tree = "0.2.4"
 regex = "1.10.6"
 serde = { version = "1.0.210", features = ["derive"] }
 toml = "0.8.19"

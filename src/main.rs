@@ -1,5 +1,9 @@
 use core::str;
-use std::{collections::HashMap, env};
+use std::{
+    collections::HashMap,
+    env,
+    sync::{Arc, Mutex},
+};
 
 use config::Config;
 use value::ValueItem;
@@ -102,10 +106,22 @@ fn main() {
         }
     }
 
+    let currentcpid = Arc::new(Mutex::new(0 as u32));
+    let _ccpidc = currentcpid.clone();
+    ctrlc::set_handler(move || {
+        let mg = _ccpidc.lock().unwrap();
+        let pid = *mg;
+        if pid == 0 {
+            return;
+        }
+        _ = kill_tree::blocking::kill_tree(pid);
+    })
+    .expect("Error setting Ctrl-C handler");
+
     match cmd.matrix.as_ref() {
         Some(matrix) => {
             if matrix.is_empty() {
-                crate::exec::exec(requirename.clone(), cmd, &values, None);
+                crate::exec::exec(requirename.clone(), cmd, &values, None, currentcpid.clone());
                 return;
             }
 
@@ -116,7 +132,13 @@ fn main() {
                     tmp[ridx] = (matrix[ridx][*cidx]).clone();
                 }
 
-                crate::exec::exec(requirename.clone(), cmd, &values, Some(&tmp));
+                crate::exec::exec(
+                    requirename.clone(),
+                    cmd,
+                    &values,
+                    Some(&tmp),
+                    currentcpid.clone(),
+                );
 
                 let mut idx = matrix.len();
                 while idx > 0 {
@@ -133,7 +155,7 @@ fn main() {
             }
         }
         None => {
-            crate::exec::exec(requirename.clone(), cmd, &values, None);
+            crate::exec::exec(requirename.clone(), cmd, &values, None, currentcpid.clone());
         }
     }
 }

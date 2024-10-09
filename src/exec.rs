@@ -13,7 +13,7 @@ pub fn exec(
     cmdcfg: &Command,
     values: &HashMap<String, ValueItem>,
     matrix: Option<&Vec<ValueItem>>,
-    ccpidarc: Arc<Mutex<u32>>,
+    procarc: Arc<Mutex<(u32, bool)>>,
 ) {
     let program = match cmdcfg.program.as_ref() {
         Some(tmp) => {
@@ -58,12 +58,19 @@ pub fn exec(
         .spawn()
         .expect(format!("failed to spawn process: `{}`", &program).as_str());
 
-    let mut mg = ccpidarc.lock().unwrap();
-    *mg = child.id();
+    let keepcp = cmdcfg.keepchildprocess.map_or(false, |v| v);
+
+    let mut mg = procarc.lock().unwrap();
+    *mg = (child.id(), keepcp);
     std::mem::drop(mg);
 
     let es = child.wait().expect(format!("wait process failed").as_str());
-    _ = kill_tree::blocking::kill_tree(child.id());
+
+    if keepcp {
+    } else {
+        _ = kill_tree::blocking::kill_tree(child.id());
+    }
+
     match es.code() {
         Some(code) => {
             if code != 0 {

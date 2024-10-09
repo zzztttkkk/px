@@ -1,11 +1,11 @@
 [values]
 x = 12
-y = "xx"
+y = "$ git log -1 --format=%h"
 z = false
 
 [cmds.echo]
-matrix = [["a", "b", "c"], [1, 3]]
-args = ["${x}", "${#.0}-${#.1}.${z}"]
+matrix = [["a", "b", "c"], [1, 3], [4, 7]]
+args = ["${x}:${y}", "${#.0}-${#.1}-${#.2}.${z}"]
 
 [cmds.ls]
 dir = "./src"
@@ -20,8 +20,10 @@ prog = "python"
 
 [cmds.loopecho]
 prog = "pwsh"
-args = ["-c", """for ($i = 1; $i -le 100; $i++) { 
+args = ["-c", """
+for ($i = 1; $i -le 100; $i++) { 
     sleep 1
     $cpid = [System.Diagnostics.Process]::GetCurrentProcess().ID
     echo "Pid: $cpid" 
-}"""]
+}
+"""]

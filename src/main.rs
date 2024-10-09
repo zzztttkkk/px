@@ -12,6 +12,24 @@ mod config;
 mod exec;
 mod value;
 
+fn getoutput(cmd: String) -> String {
+    let parts: Vec<String> = cmd
+        .split(" ")
+        .map(|v| v.trim())
+        .filter(|v| !v.is_empty())
+        .map(|v| v.to_string())
+        .collect();
+    if parts.len() < 2 {
+        return cmd;
+    }
+    let mut program = std::process::Command::new(&parts[1]);
+    program.args(&parts[2..]);
+    let output = program
+        .output()
+        .expect(format!("exec `{}` failed", cmd).as_str());
+    return String::from_utf8_lossy(&output.stdout).trim().to_string();
+}
+
 fn main() {
     std::panic::set_hook(Box::new(|info| {
         match info.payload().downcast_ref::<String>() {
@@ -96,6 +114,17 @@ fn main() {
         }
     });
 
+    for (_, v) in &mut values {
+        match v {
+            ValueItem::String(sv) => {
+                if sv.starts_with("$ ") {
+                    *v = ValueItem::String(getoutput(sv.clone()));
+                }
+            }
+            _ => {}
+        }
+    }
+
     if args.len() > 2 {
         if cmd.args.is_none() {
             cmd.args = Some(vec![]);
@@ -106,22 +135,25 @@ fn main() {
         }
     }
 
-    let currentcpid = Arc::new(Mutex::new(0 as u32));
-    let _ccpidc = currentcpid.clone();
+    let currentproc = Arc::new(Mutex::new((0 as u32, false)));
+    let _ccpidc = currentproc.clone();
     ctrlc::set_handler(move || {
         let mg = _ccpidc.lock().unwrap();
-        let pid = *mg;
+        let (pid, keepcp) = *mg;
         if pid == 0 {
             return;
         }
-        _ = kill_tree::blocking::kill_tree(pid);
+        if keepcp {
+        } else {
+            _ = kill_tree::blocking::kill_tree(pid);
+        }
     })
     .expect("Error setting Ctrl-C handler");
 
     match cmd.matrix.as_ref() {
         Some(matrix) => {
             if matrix.is_empty() {
-                crate::exec::exec(requirename.clone(), cmd, &values, None, currentcpid.clone());
+                crate::exec::exec(requirename.clone(), cmd, &values, None, currentproc.clone());
                 return;
             }
 
@@ -137,7 +169,7 @@ fn main() {
                     cmd,
                     &values,
                     Some(&tmp),
-                    currentcpid.clone(),
+                    currentproc.clone(),
                 );
 
                 let mut idx = matrix.len();
@@ -155,7 +187,7 @@ fn main() {
             }
         }
         None => {
-            crate::exec::exec(requirename.clone(), cmd, &values, None, currentcpid.clone());
+            crate::exec::exec(requirename.clone(), cmd, &values, None, currentproc.clone());
         }
     }
 }

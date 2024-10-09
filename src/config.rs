@@ -15,6 +15,8 @@ pub struct Command {
     pub values: Option<HashMap<String, ValueItem>>,
     #[serde()]
     pub matrix: Option<Vec<Vec<ValueItem>>>,
+    #[serde(alias = "keepcp")]
+    pub keepchildprocess: Option<bool>,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
